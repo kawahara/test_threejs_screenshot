@@ -1,19 +1,16 @@
-import {BoxGeometry, Mesh, MeshNormalMaterial, PerspectiveCamera, Scene, WebGLRenderer} from 'three'
+import {PerspectiveCamera, WebGLRenderer} from 'three'
 import {PNG} from 'pngjs'
 import fs from 'fs'
 import gl from 'gl'
+import {createScene} from './scene'
 
 const render = () => {
   const width = 600
   const height = 400
   const png = new PNG({width: 600, height: height})
-  const scene = new Scene()
   const camera = new PerspectiveCamera(70, width / height, 0.01, 10);
   camera.position.z = 1;
-  const geometry = new BoxGeometry(0.2, 0.2, 0.2);
-  const material = new MeshNormalMaterial();
-  const mesh = new Mesh(geometry, material);
-  scene.add(mesh);
+  const scene = createScene()
   const canvas = {
     width,
     height,
@@ -30,11 +27,12 @@ const render = () => {
     context: gl(width, height, {
       preserveDrawingBuffer: true
     })
-  });
+  })
+
   renderer.setSize(600, 400)
-  mesh.rotation.x = 400 / 2000;
-  mesh.rotation.y = 400 / 2000;
-  renderer.render(scene, camera);
+  renderer.render(scene, camera)
+
+  // convert to png
   const context = renderer.getContext()
   const pixels = new Uint8Array(4 * width * height)
   context.readPixels(0, 0, width, height, context.RGBA, context.UNSIGNED_BYTE, pixels)
