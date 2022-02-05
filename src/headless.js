@@ -3,8 +3,10 @@ import {PNG} from 'pngjs'
 import fs from 'fs'
 import gl from 'gl'
 import {createScene} from './scene'
+import {createCanvas, loadImage} from 'canvas'
+import {streamToBuffer} from '@jorgeferrero/stream-to-buffer'
 
-const render = () => {
+const render = async () => {
   const width = 600
   const height = 400
   const png = new PNG({width: 600, height: height})
@@ -51,13 +53,22 @@ const render = () => {
     }
   }
 
+  const stream = png.pack()
+  const buffer = await streamToBuffer(stream)
 
-  const stream = fs.createWriteStream('test.png')
-  png.pack().pipe(stream)
-
-  stream.on('close', () => {
-    console.log('Image written')
-  })
+  const resultCanvas = createCanvas(width, height)
+  const ctx = resultCanvas.getContext('2d')
+  const img = await loadImage(buffer)
+  ctx.drawImage(img, 0, 0, width, height)
+  ctx.fillStyle = '#FFFFFF'
+  ctx.fillRect(0, 0, width / 2, height / 2)
+  ctx.font = 'normal 30px sans-serif'
+  ctx.fillText('Hello', width / 2, height / 2)
+  ctx.fillStyle = '#FFFFFF'
+  ctx.globalAlpha = 0.2
+  ctx.fillText('Hello', width / 2, height / 2 + 50)
+  const result = resultCanvas.toBuffer('image/png', { compressionLevel: 9})
+  await fs.promises.writeFile('test.png', result)
 }
 
 render()
